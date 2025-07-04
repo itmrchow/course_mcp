@@ -8,4 +8,5 @@ import (
 func RegisterCourseTools(s *server.MCPServer, tool CourseMCPTool) {
 	s.AddTool(tool.GetCourseTool(), tool.GetCourseHandler)       // 取得課程
 	s.AddTool(tool.CreateCourseTool(), tool.CreateCourseHandler) // 建立課程
+	s.AddTool(tool.FindCourseTool(), tool.FindCourseHandler)     // 查詢課程
 }
