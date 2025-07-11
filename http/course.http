@@ -1,0 +1,19 @@
+@realm = course_server
+
+###
+GET http://localhost:3000/.well-known/oauth-authorization-server
+
+### register
+POST http://localhost:3000/register
+
+{
+
+}
+
+### authorize
+GET http://localhost:3000/authorize?response_type=code&client_id=course-front&code_challenge=A1uBslNcsOZnJ_bLosjtqBf1nELu74r-DRNhk2C2R9c&code_challenge_method=S256&redirect_uri=http%3A%2F%2F127.0.0.1%3A6274%2Foauth%2Fcallback%2Fdebug&scope=openid+profile+email
+
+### token
+
+
+

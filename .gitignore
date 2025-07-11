@@ -1,2 +1,5 @@
 .env
 launch.json
+.github/prompts/my.prompt.md
+CLAUDE.md
+.vscode/settings.json

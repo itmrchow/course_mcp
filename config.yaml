@@ -1,2 +1,10 @@
 # server
 POST: 3000
+
+# auth
+KEYCLOAK_URL: 
+KEYCLOAK_REALM: 
+KEYCLOAK_AUDIENCE: mcp-client
+CLIENT_ID: course-front
+CLIENT_SECRET: 
+PUBLIC_KEY: 
