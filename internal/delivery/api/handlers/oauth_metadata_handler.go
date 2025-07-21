@@ -10,19 +10,19 @@ import (
 	"course-mcp/internal/usecase/utils"
 )
 
-type OAuthMatadataHandler struct {
+type OAuthMetadataHandler struct {
 	logger       *zerolog.Logger
 	authProvider utils.AuthProvider
 }
 
-func NewOAuthMatadataHandler(logger *zerolog.Logger, authProvider utils.AuthProvider) *OAuthMatadataHandler {
-	return &OAuthMatadataHandler{
+func NewOAuthMetadataHandler(logger *zerolog.Logger, authProvider utils.AuthProvider) *OAuthMetadataHandler {
+	return &OAuthMetadataHandler{
 		logger:       logger,
 		authProvider: authProvider,
 	}
 }
 
-func (h *OAuthMatadataHandler) HandleOAuthProtectedResource(c *gin.Context) {
+func (h *OAuthMetadataHandler) HandleOAuthProtectedResource(c *gin.Context) {
 	metadata := &transport.OAuthProtectedResource{
 		AuthorizationServers: []string{"http://localhost:3000/realms/course_server/.well-known/openid-configuration"},
 		Resource:             "Example OAuth Protected Resource",
@@ -31,7 +31,7 @@ func (h *OAuthMatadataHandler) HandleOAuthProtectedResource(c *gin.Context) {
 	c.JSON(http.StatusOK, metadata)
 }
 
-func (h *OAuthMatadataHandler) HandleOAuthAuthorizationServer(c *gin.Context) {
+func (h *OAuthMetadataHandler) HandleOAuthAuthorizationServer(c *gin.Context) {
 
 	// TODO: call authserver to get metadata
 

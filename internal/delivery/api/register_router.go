@@ -40,14 +40,14 @@ func NewRouter(
 func registerAuthRoutes(logger *zerolog.Logger, authProvider utils.AuthProvider, router *gin.Engine) {
 	// API handlers
 	authHandler := handlers.NewAuthHandler(logger, authProvider)
-	oauthMatadataHandler := handlers.NewOAuthMatadataHandler(logger, authProvider)
+	oauthMetadataHandler := handlers.NewOAuthMetadataHandler(logger, authProvider)
 	tokenHandler := handlers.NewTokenHandler(logger, authProvider)
 
 	// OAuth Protected Resources
-	router.GET("/.well-known/oauth-protected-resource", oauthMatadataHandler.HandleOAuthProtectedResource)
+	router.GET("/.well-known/oauth-protected-resource", oauthMetadataHandler.HandleOAuthProtectedResource)
 
 	// OAuth Authorization Server
-	router.GET("/.well-known/oauth-authorization-server", middlewares.CorsMiddleware(), oauthMatadataHandler.HandleOAuthAuthorizationServer)
+	router.GET("/.well-known/oauth-authorization-server", middlewares.CorsMiddleware(), oauthMetadataHandler.HandleOAuthAuthorizationServer)
 
 	// Register Client
 	router.POST("/register", middlewares.CorsMiddleware(), authHandler.HandleRegister)
