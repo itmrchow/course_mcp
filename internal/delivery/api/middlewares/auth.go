@@ -10,15 +10,21 @@ import (
 
 type AuthMiddleware struct {
 	tokenValidator *utils.TokenValidator
+	// scopeManager   *scope.ScopeManager
 }
 
-func NewAuthMiddleware(tokenValidator *utils.TokenValidator) *AuthMiddleware {
+func NewAuthMiddleware(
+	tokenValidator *utils.TokenValidator,
+) *AuthMiddleware {
 	return &AuthMiddleware{
 		tokenValidator: tokenValidator,
 	}
 }
 
-func (a *AuthMiddleware) RequireAuth() gin.HandlerFunc {
+type TokenClaimsKey struct{}
+
+// Authentication 驗證檢查
+func (a *AuthMiddleware) Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenString := ctx.GetHeader("Authorization")
 		if tokenString == "" {
@@ -34,6 +40,12 @@ func (a *AuthMiddleware) RequireAuth() gin.HandlerFunc {
 		}
 		// Set the token claims in the context for further use
 		ctx.Set("tokenClaims", tokenClaims)
+
+		// Set to context.Context
+		requestCtx := utils.WithTokenClaims(ctx.Request.Context(), tokenClaims)
+
+		ctx.Request = ctx.Request.WithContext(requestCtx)
+
 		ctx.Next()
 	}
 }

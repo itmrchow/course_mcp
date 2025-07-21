@@ -38,6 +38,7 @@ func (c *CourseMCPToolImpl) GetCourseTool() mcp.Tool {
 
 // GetCourseHandler 取得課程MCP Handler
 func (c *CourseMCPToolImpl) GetCourseHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
 	args := request.GetArguments()
 	courseId := args["courseId"].(float64)
 

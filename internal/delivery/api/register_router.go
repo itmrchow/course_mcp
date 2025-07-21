@@ -11,21 +11,23 @@ import (
 	"course-mcp/internal/usecase/utils"
 )
 
-func InitializeRouter(logger *zerolog.Logger, authProvider utils.AuthProvider, mcpServer http.Handler) *gin.Engine {
+func NewRouter(
+	logger *zerolog.Logger,
+	authProvider utils.AuthProvider,
+	mcpServer http.Handler,
+	authMiddleware *middlewares.AuthMiddleware,
+) *gin.Engine {
 
 	router := gin.Default()
 
 	// global middleware
 	router.Use(middlewares.CorsMiddleware())
 
-	// auth middleware
-	tokenValidator := utils.NewTokenValidator()
-	authMiddleware := middlewares.NewAuthMiddleware(tokenValidator)
-
 	// register POST, GET, DELETE methods for the /mcp path, all handled by MCPServer
 	for _, method := range []string{http.MethodPost, http.MethodGet, http.MethodDelete} {
 		router.Handle(method, "/mcp",
-			authMiddleware.RequireAuth(),
+			authMiddleware.Authentication(),
+			// authMiddleware.Authorization(),
 			gin.WrapH(mcpServer))
 	}
 

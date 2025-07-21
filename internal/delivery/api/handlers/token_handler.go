@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"encoding/base64"
 	"log/slog"
 	"net/http"
 	"net/url"
@@ -29,9 +30,19 @@ func (h *TokenHandler) HandleToken(c *gin.Context) {
 	grantType := c.PostForm("grant_type")
 	code := c.PostForm("code")
 	codeVerifier := c.PostForm("code_verifier")
-	// clientIDParam := c.PostForm("client_id")
 	redirectURI := c.PostForm("redirect_uri")
-	// clientSecret := c.PostForm("client_secret")
+
+	if authorization == "" {
+		clientIDParam := c.PostForm("client_id")
+		clientSecret := c.PostForm("client_secret")
+		if clientIDParam == "" || clientSecret == "" {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "authorization header or client credentials are required"})
+			return
+		}
+		// Create Basic Auth header with base64 encoding
+		credentials := clientIDParam + ":" + clientSecret
+		authorization = "Basic " + base64.StdEncoding.EncodeToString([]byte(credentials))
+	}
 
 	// h.logger.Info().Msgf("Received token request: authorization=%s, grant_type=%s, code=%s, client_id=%s, redirect_uri=%s",
 	// 	authorization,

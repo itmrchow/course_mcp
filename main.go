@@ -14,11 +14,14 @@ import (
 	"github.com/spf13/viper"
 
 	"course-mcp/internal/delivery/api"
+	"course-mcp/internal/delivery/api/middlewares"
 	"course-mcp/internal/delivery/mcp/prompts"
 	"course-mcp/internal/delivery/mcp/resources"
+	"course-mcp/internal/delivery/mcp/scope"
+	mcpServer "course-mcp/internal/delivery/mcp/server"
 	"course-mcp/internal/delivery/mcp/tools"
-	"course-mcp/internal/delivery/mcp/utils"
 	infra "course-mcp/internal/infrastructure"
+	"course-mcp/internal/usecase/utils"
 )
 
 func main() {
@@ -28,29 +31,24 @@ func main() {
 	// 設定日誌格式
 	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
 
-	s := server.NewMCPServer(
-		"course-mcp-server", // Server name
-		"1.0.0",             // Server version
-		server.WithResourceCapabilities(true, true),
-		server.WithToolCapabilities(true),
-		server.WithLogging(),
-		server.WithRecovery(),
-	)
+	// utils
+	// - scope 管理器
+	scopeManager := scope.NewScopeManager()
+	// - token validator
+	tokenValidator := utils.NewTokenValidator()
+	// - auth provider -> 呼叫 auth server
+	authProvider := utils.NewKeycloakAuthProvider()
+
+	// 建立 MCP 伺服器管理器 ,
+	mcpServerManager := mcpServer.NewMCPServerManager(&logger, scopeManager)
+
+	// 建立 MCP 伺服器實例
+	s := mcpServer.NewMCPServer(&logger, mcpServerManager)
 
 	// mcpServer
 	mcpServer := server.NewStreamableHTTPServer(
 		s,
 		server.WithHeartbeatInterval(30*time.Second),
-		server.WithHTTPContextFunc(func(
-			ctx context.Context,
-			r *http.Request,
-		) context.Context {
-			authVal := r.Header.Get("Authorization")
-			ctx = context.WithValue(ctx, "auth", authVal)
-
-			// TODO: trace id
-			return ctx
-		}),
 	)
 
 	// tools
@@ -69,11 +67,11 @@ func main() {
 	tools.RegisterTeacherTools(s, teacherTools)
 	prompts.RegisterCoursePrompts(s, coursePromptService)
 
-	// auth provider
-	authProvider := utils.NewKeycloakAuthProvider()
+	// API middleware
+	authMiddleware := middlewares.NewAuthMiddleware(tokenValidator)
 
 	// gin
-	router := api.InitializeRouter(&logger, authProvider, mcpServer)
+	router := api.NewRouter(&logger, authProvider, mcpServer, authMiddleware)
 
 	port := viper.GetString("PORT")
 	if port == "" {
@@ -171,4 +169,14 @@ type Claims struct {
 	UserID string `json:"user_id"`
 	Role   string `json:"role"`
 	jwt.StandardClaims
+}
+
+func authFromRequest(ctx context.Context, r *http.Request) context.Context {
+	return withAuthKey(ctx, r.Header.Get("Authorization"))
+}
+
+type authKey struct{}
+
+func withAuthKey(ctx context.Context, auth string) context.Context {
+	return context.WithValue(ctx, authKey{}, auth)
 }
