@@ -17,4 +17,8 @@ type CourseMCPTool interface {
 	// 建立課程
 	CreateCourseTool() mcp.Tool
 	CreateCourseHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error)
+
+	// 查詢課程
+	FindCourseTool() mcp.Tool
+	FindCourseHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error)
 }

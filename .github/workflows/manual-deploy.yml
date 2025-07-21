@@ -1,0 +1,38 @@
+name: Manual Deploy to Google Cloud Run
+
+on:
+  workflow_dispatch: # 僅支援手動觸發
+    inputs:
+      image_tag:
+        description: 'Docker image tag to deploy (default: latest)'
+        required: false
+        default: 'latest'
+        type: string
+
+env:
+  GCP_PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GCP_REGION: asia-east1 # 您的 GCP 區域，請根據實際情況修改
+  SERVICE_NAME: course-mcp # 您想在 Cloud Run 上顯示的服務名稱
+  DOCKER_IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/course-mcp # Docker Hub 映像檔名稱
+
+jobs:
+  deploy-to-cloud-run:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Deploy to Cloud Run
+        run: |-
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --image ${{ env.DOCKER_IMAGE_NAME }}:${{ github.event.inputs.image_tag }} \
+            --region ${{ env.GCP_REGION }} \
+            --platform managed \
+            --allow-unauthenticated

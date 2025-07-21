@@ -38,6 +38,7 @@ func (c *CourseMCPToolImpl) GetCourseTool() mcp.Tool {
 
 // GetCourseHandler 取得課程MCP Handler
 func (c *CourseMCPToolImpl) GetCourseHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+
 	args := request.GetArguments()
 	courseId := args["courseId"].(float64)
 
@@ -104,6 +105,7 @@ func (c *CourseMCPToolImpl) CreateCourseTool() mcp.Tool {
 		mcp.WithBoolean("is_online", mcp.Required(), mcp.Description("是否是線上課程")),
 		mcp.WithNumber("status", mcp.Required(), mcp.Description("課程狀態（0: 草稿, 1: 審核中）")),
 		mcp.WithString("note", mcp.Required(), mcp.Description("課程備註")),
+		mcp.WithArray("tags", mcp.Description("課程標籤")),
 	)
 }
 
@@ -139,6 +141,55 @@ func (c *CourseMCPToolImpl) CreateCourseHandler(ctx context.Context, request mcp
 			mcp.TextContent{
 				Type: "text",
 				Text: `{"success": true, "message": "課程建立成功"}`,
+			},
+		},
+	}, nil
+}
+
+func (c *CourseMCPToolImpl) FindCourseTool() mcp.Tool {
+	return mcp.NewTool(
+		"findCourse",
+		mcp.WithDescription("查詢課程"),
+		mcp.WithDescription("將使用者輸入的內容,轉成1~3個tags"),
+		mcp.WithString("course_id", mcp.Description("課程ID")),
+		mcp.WithString("course_name", mcp.Description("課程名稱")),
+		mcp.WithString("teacher_name", mcp.Description("教師名稱")),
+		mcp.WithString("teacher_id", mcp.Description("教師ID")),
+		mcp.WithString("tags"),
+	)
+}
+
+func (c *CourseMCPToolImpl) FindCourseHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := request.GetArguments()
+
+	c.logger.Info().Msgf("find course args: %+v", args)
+
+	// 修改DTO
+	dto := dto.GetCourseResponseDTO{
+		ID:                    1,
+		Name:                  "課程1",
+		Description:           "課程1描述",
+		TeacherID:             "1",
+		TeacherName:           "教師1",
+		Price:                 100,
+		MaxStudents:           100,
+		MinStudents:           10,
+		RegistrationStartDate: time.Now(),
+		RegistrationEndDate:   time.Now(),
+		StartDate:             time.Now(),
+		EndDate:               time.Now(),
+		IsOnline:              true,
+		Status:                1,
+		Note:                  "課程1備註",
+	}
+
+	jsonData, _ := json.Marshal(dto)
+
+	return &mcp.CallToolResult{
+		Content: []mcp.Content{
+			mcp.TextContent{
+				Type: "text",
+				Text: string(jsonData),
 			},
 		},
 	}, nil
