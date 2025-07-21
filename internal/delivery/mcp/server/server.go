@@ -7,7 +7,7 @@ import (
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/rs/zerolog"
 
-	"course-mcp/internal/delivery/mcp/scope"
+	"course-mcp/internal/delivery/mcp/tools"
 	"course-mcp/internal/usecase/utils"
 )
 
@@ -49,11 +49,11 @@ func NewMCPServer(
 
 type MCPServerManager struct {
 	logger       *zerolog.Logger
-	scopeManager *scope.ScopeManager
+	scopeManager *tools.ScopeManager
 }
 
 // NewMCPServerManager 創建新的 MCP 伺服器管理器 , 定義MCP Server所需的Handler funcs
-func NewMCPServerManager(logger *zerolog.Logger, scopeManager *scope.ScopeManager) *MCPServerManager {
+func NewMCPServerManager(logger *zerolog.Logger, scopeManager *tools.ScopeManager) *MCPServerManager {
 	return &MCPServerManager{
 		logger:       logger,
 		scopeManager: scopeManager,

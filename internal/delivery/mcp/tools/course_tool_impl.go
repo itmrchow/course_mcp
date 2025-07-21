@@ -27,7 +27,7 @@ func NewCourseMCPToolImpl(logger *zerolog.Logger) CourseMCPTool {
 // GetCourseTool 取得課程MCP Tool
 func (c *CourseMCPToolImpl) GetCourseTool() mcp.Tool {
 	return mcp.NewTool(
-		"getCourse",
+		string(ToolGetCourse),
 		mcp.WithDescription("取得課程"),
 		mcp.WithNumber("courseId",
 			mcp.Required(),
@@ -90,7 +90,7 @@ func (c *CourseMCPToolImpl) GetCourseHandler(ctx context.Context, request mcp.Ca
 // CreateCourseTool 建立課程MCP Tool
 func (c *CourseMCPToolImpl) CreateCourseTool() mcp.Tool {
 	return mcp.NewTool(
-		"createCourse",
+		string(ToolCreateCourse),
 		mcp.WithDescription("建立課程"),
 		mcp.WithString("name", mcp.Required(), mcp.Description("課程名稱")),
 		mcp.WithString("description", mcp.Required(), mcp.Description("課程描述")),
@@ -148,7 +148,7 @@ func (c *CourseMCPToolImpl) CreateCourseHandler(ctx context.Context, request mcp
 
 func (c *CourseMCPToolImpl) FindCourseTool() mcp.Tool {
 	return mcp.NewTool(
-		"findCourse",
+		string(ToolFindCourse),
 		mcp.WithDescription("查詢課程"),
 		mcp.WithDescription("將使用者輸入的內容,轉成1~3個tags"),
 		mcp.WithString("course_id", mcp.Description("課程ID")),
