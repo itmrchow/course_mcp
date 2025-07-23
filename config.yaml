@@ -1,5 +1,6 @@
 # server
-POST: 3000
+PORT: 3000
+APP_URL: http://localhost
 
 # auth
 KEYCLOAK_URL: 
