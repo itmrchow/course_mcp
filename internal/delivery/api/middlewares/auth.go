@@ -10,7 +10,6 @@ import (
 
 type AuthMiddleware struct {
 	tokenValidator *utils.TokenValidator
-	// scopeManager   *scope.ScopeManager
 }
 
 func NewAuthMiddleware(
@@ -21,14 +20,13 @@ func NewAuthMiddleware(
 	}
 }
 
-type TokenClaimsKey struct{}
-
 // Authentication 驗證檢查
 func (a *AuthMiddleware) Authentication() gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		tokenString := ctx.GetHeader("Authorization")
 		if tokenString == "" {
 			// add header to response
+			// TODO: url
 			ctx.Header("WWW-Authenticate", `Bearer resource_metadata="localhost:3000/.well-known/oauth-authorization-server"`) // TODO: value from env
 			ctx.AbortWithStatus(http.StatusUnauthorized)
 			return
