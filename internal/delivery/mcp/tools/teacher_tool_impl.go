@@ -26,7 +26,7 @@ func NewTeacherMCPToolImpl(logger *zerolog.Logger) TeacherMCPTool {
 // GetTeacherTool 取得教師MCP Tool
 func (t *TeacherMCPToolImpl) GetTeacherTool() mcp.Tool {
 	return mcp.NewTool(
-		"getTeacher",
+		string(ToolGetTeacher),
 		mcp.WithDescription("取得教師"),
 		mcp.WithNumber("teacherId",
 			mcp.Required(),
@@ -56,7 +56,7 @@ func (t *TeacherMCPToolImpl) GetTeacherHandler(ctx context.Context, request mcp.
 // CreateTeacherTool 建立教師MCP Tool
 func (t *TeacherMCPToolImpl) CreateTeacherTool() mcp.Tool {
 	return mcp.NewTool(
-		"createTeacher",
+		string(ToolCreateTeacher),
 		mcp.WithDescription("建立教師"),
 		mcp.WithNumber("user_id", mcp.Required(), mcp.Description("關聯 user（帳號）ID")),
 		mcp.WithString("name", mcp.Required(), mcp.Description("教師姓名")),
@@ -108,7 +108,7 @@ func (t *TeacherMCPToolImpl) CreateTeacherHandler(ctx context.Context, request m
 // FindTeacherTool 查詢教師MCP Tool
 func (t *TeacherMCPToolImpl) FindTeacherTool() mcp.Tool {
 	return mcp.NewTool(
-		"findTeacher",
+		string(ToolFindTeacher),
 		mcp.WithDescription("查詢教師"),
 		mcp.WithString("teacher_name", mcp.Description("教師姓名")),
 	)

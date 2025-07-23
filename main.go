@@ -1,14 +1,11 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"os"
-	"strings"
 	"time"
 
-	"github.com/golang-jwt/jwt"
 	"github.com/mark3labs/mcp-go/server"
 	"github.com/rs/zerolog"
 	"github.com/spf13/viper"
@@ -17,7 +14,6 @@ import (
 	"course-mcp/internal/delivery/api/middlewares"
 	"course-mcp/internal/delivery/mcp/prompts"
 	"course-mcp/internal/delivery/mcp/resources"
-	"course-mcp/internal/delivery/mcp/scope"
 	mcpServer "course-mcp/internal/delivery/mcp/server"
 	"course-mcp/internal/delivery/mcp/tools"
 	infra "course-mcp/internal/infrastructure"
@@ -26,6 +22,7 @@ import (
 
 func main() {
 
+	// config + env
 	infra.InitConfig()
 
 	// 設定日誌格式
@@ -33,44 +30,47 @@ func main() {
 
 	// utils
 	// - scope 管理器
-	scopeManager := scope.NewScopeManager()
+	scopeManager := tools.NewScopeManager()
 	// - token validator
 	tokenValidator := utils.NewTokenValidator()
 	// - auth provider -> 呼叫 auth server
 	authProvider := utils.NewKeycloakAuthProvider()
 
-	// 建立 MCP 伺服器管理器 ,
+	// mcp
+	// - 建立 MCP 伺服器管理器 , 包含MCP Server所需的Handler funcs
 	mcpServerManager := mcpServer.NewMCPServerManager(&logger, scopeManager)
 
-	// 建立 MCP 伺服器實例
+	// - 建立 MCP 伺服器實例
 	s := mcpServer.NewMCPServer(&logger, mcpServerManager)
 
-	// mcpServer
+	// - mcp http server
 	mcpServer := server.NewStreamableHTTPServer(
 		s,
 		server.WithHeartbeatInterval(30*time.Second),
 	)
 
-	// tools
+	// - mcp tools
 	courseTools := tools.NewCourseMCPToolImpl(&logger)
 	teacherTools := tools.NewTeacherMCPToolImpl(&logger)
 
-	// resources 給LLM看的資訊
+	// - resources 給LLM看的資訊
 	courseResource := resources.NewCourseMCPResourceImpl(&logger)
 
-	// prompt
+	// - prompt
 	coursePromptService := prompts.NewCoursePromptServiceImpl()
 
-	// register
+	// - register
 	resources.RegisterCourseResources(s, courseResource)
 	tools.RegisterCourseTools(s, courseTools)
 	tools.RegisterTeacherTools(s, teacherTools)
 	prompts.RegisterCoursePrompts(s, coursePromptService)
 
-	// API middleware
+	// gin (http server)
+
+	// - API middleware
 	authMiddleware := middlewares.NewAuthMiddleware(tokenValidator)
 
-	// gin
+	// - router
 	router := api.NewRouter(&logger, authProvider, mcpServer, authMiddleware)
 
 	port := viper.GetString("PORT")
@@ -97,86 +97,4 @@ func main() {
 	// if err := httpServer.Start(":" + port); err != nil {
 	// 	log.Fatal("Failed to start server:", err)
 	// }
-}
-
-type AuthMiddleware struct {
-	jwtSecret []byte
-	// userStore UserStore
-}
-
-func NewAuthMiddleware(secret []byte) *AuthMiddleware {
-	return &AuthMiddleware{
-		jwtSecret: secret,
-		// userStore: store,
-	}
-}
-
-func (m *AuthMiddleware) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Extract token from Authorization header
-		authHeader := r.Header.Get("Authorization")
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			http.Error(w, "Missing or invalid authorization header", http.StatusUnauthorized)
-			return
-		}
-
-		token := strings.TrimPrefix(authHeader, "Bearer ")
-
-		// Validate JWT token
-		claims, err := m.validateJWT(token)
-		if err != nil {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
-
-		// Load user information
-		// user, err := m.userStore.GetUser(claims.UserID)
-		// if err != nil {
-		// 	http.Error(w, "User not found", http.StatusUnauthorized)
-		// 	return
-		// }
-
-		user := &Claims{
-			UserID: claims.UserID,
-			Role:   claims.Role,
-		}
-
-		// Add user to request context
-		ctx := context.WithValue(r.Context(), "user", user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
-}
-
-func (m *AuthMiddleware) validateJWT(tokenString string) (*Claims, error) {
-	// Note: This example uses a hypothetical JWT library
-	// In practice, you would use a real JWT library like github.com/golang-jwt/jwt
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
-		return m.jwtSecret, nil
-	})
-
-	if err != nil {
-		return nil, err
-	}
-
-	if claims, ok := token.Claims.(*Claims); ok && token.Valid {
-		return claims, nil
-	}
-
-	return nil, fmt.Errorf("invalid token")
-}
-
-type Claims struct {
-	UserID string `json:"user_id"`
-	Role   string `json:"role"`
-	jwt.StandardClaims
-}
-
-func authFromRequest(ctx context.Context, r *http.Request) context.Context {
-	return withAuthKey(ctx, r.Header.Get("Authorization"))
-}
-
-type authKey struct{}
-
-func withAuthKey(ctx context.Context, auth string) context.Context {
-	return context.WithValue(ctx, authKey{}, auth)
 }
